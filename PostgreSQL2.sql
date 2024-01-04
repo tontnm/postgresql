@@ -138,3 +138,65 @@ CREATE TABLE locations(
 );
 INSERT INTO locations (address) VALUES ('123 VN');
 SELECT * FROM locations;
+
+--positive-numeric
+CREATE DOMAIN positive_numeric INT NOT NULL CHECK (VALUE > 0);
+CREATE TABLE sample(
+	sample_id SERIAL PRIMARY KEY,
+	value_num positive_numeric
+);
+INSERT INTO sample (value_num) VALUES (10);
+INSERT INTO sample (value_num) VALUES (-1);
+SELECT * FROM sample;
+
+CREATE DOMAIN us_postal_code AS TEXT
+CHECK (
+	VALUE ~'^\d{5}$'
+	OR VALUE ~'^\D{5}-\d{4}$'
+);
+CREATE TABLE addresses(
+	address_id SERIAL PRIMARY KEY,
+	postal_code us_postal_code
+);
+INSERT INTO addresses (postal_code) VALUES ('1000-100');
+SELECT * FROM addresses;
+
+CREATE DOMAIN proper_email VARCHAR(150)
+CHECK (VALUE ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$');
+CREATE TABLE client_names(
+	client_id SERIAL PRIMARY KEY,
+	email proper_email
+);
+INSERT INTO client_names (email) VALUES ('a@b.com');
+SELECT * FROM client_names;
+
+CREATE DOMAIN valid_color VARCHAR(10)
+CHECK (VALUE IN ('red','green','blue'));
+CREATE TABLE colors(
+	color valid_color
+);
+INSERT INTO colors (color) VALUES ('red');
+SELECT * FROM colors;
+
+CREATE DOMAIN user_status VARCHAR(10)
+CHECK (VALUE IN ('enable','disable'));
+CREATE TABLE user_check(
+	status user_status
+);
+INSERT INTO user_check (status) VALUES ('enable');
+
+CREATE TYPE address AS(
+	city VARCHAR(50),
+	country VARCHAR(50)
+);
+CREATE TABLE companies(
+	comp_id SERIAL PRIMARY KEY,
+	address address
+);
+INSERT INTO companies (address) VALUES (ROW('LONDON','UK')),(ROW('NY','UK'));
+SELECT (address).country FROM companies;
+SELECT (companies.address).city FROM companies;
+
+
+
+
