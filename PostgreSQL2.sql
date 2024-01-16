@@ -197,6 +197,39 @@ INSERT INTO companies (address) VALUES (ROW('LONDON','UK')),(ROW('NY','UK'));
 SELECT (address).country FROM companies;
 SELECT (companies.address).city FROM companies;
 
+CREATE TYPE inventory_item AS(
+	product_name VARCHAR(50),
+	supplier_id INT,
+	price NUMERIC
+);
+CREATE TABLE inventory(
+	inventory_id SERIAL PRIMARY KEY,
+	item inventory_item
+);
+SELECT * FROM inventory;
+INSERT INTO inventory (item) VALUES (ROW('SHAMPOO',20,10.999));
+INSERT INTO inventory (item) VALUES (ROW('SHAMPOO',5,10.999));
+INSERT INTO inventory (item) VALUES (ROW('SHAMPOO',10,10.999));
+SELECT inventory_id,(item).product_name FROM inventory WHERE (item).supplier_id < 10;
 
+CREATE TYPE currency AS ENUM ('USA','VND','TH');
+SELECT 'USD'::currency;
+ALTER TYPE currency ADD VALUE 'JPN' AFTER 'VND';
+CREATE TABLE stocks(
+	stock_id SERIAL PRIMARY KEY,
+	stock_currency currency
+);
+INSERT INTO stocks (stock_currency) VALUES ('USA');
+INSERT INTO stocks (stock_currency) VALUES ('USD1');
+SELECT * FROM stocks;
+CREATE TYPE sample_type AS ENUM ('abc','123');
+DROP TYPE sample_type;
 
-
+CREATE TYPE myaddress AS(
+	city VARCHAR(50),
+	myname VARCHAR(50)
+);
+ALTER TYPE myaddress RENAME TO my_address;
+ALTER TYPE my_address OWNER TO ton;
+ALTER TYPE my_address SET SCHEMA test_scm;
+ALTER TYPE test_scm.my_address ADD ATTRIBUTE street_address VARCHAR(50);
