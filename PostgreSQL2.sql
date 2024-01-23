@@ -138,3 +138,134 @@ CREATE TABLE locations(
 );
 INSERT INTO locations (address) VALUES ('123 VN');
 SELECT * FROM locations;
+
+--positive-numeric
+CREATE DOMAIN positive_numeric INT NOT NULL CHECK (VALUE > 0);
+CREATE TABLE sample(
+	sample_id SERIAL PRIMARY KEY,
+	value_num positive_numeric
+);
+INSERT INTO sample (value_num) VALUES (10);
+INSERT INTO sample (value_num) VALUES (-1);
+SELECT * FROM sample;
+
+CREATE DOMAIN us_postal_code AS TEXT
+CHECK (
+	VALUE ~'^\d{5}$'
+	OR VALUE ~'^\D{5}-\d{4}$'
+);
+CREATE TABLE addresses(
+	address_id SERIAL PRIMARY KEY,
+	postal_code us_postal_code
+);
+INSERT INTO addresses (postal_code) VALUES ('1000-100');
+SELECT * FROM addresses;
+
+CREATE DOMAIN proper_email VARCHAR(150)
+CHECK (VALUE ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$');
+CREATE TABLE client_names(
+	client_id SERIAL PRIMARY KEY,
+	email proper_email
+);
+INSERT INTO client_names (email) VALUES ('a@b.com');
+SELECT * FROM client_names;
+
+CREATE DOMAIN valid_color VARCHAR(10)
+CHECK (VALUE IN ('red','green','blue'));
+CREATE TABLE colors(
+	color valid_color
+);
+INSERT INTO colors (color) VALUES ('red');
+SELECT * FROM colors;
+
+CREATE DOMAIN user_status VARCHAR(10)
+CHECK (VALUE IN ('enable','disable'));
+CREATE TABLE user_check(
+	status user_status
+);
+INSERT INTO user_check (status) VALUES ('enable');
+
+CREATE TYPE address AS(
+	city VARCHAR(50),
+	country VARCHAR(50)
+);
+CREATE TABLE companies(
+	comp_id SERIAL PRIMARY KEY,
+	address address
+);
+INSERT INTO companies (address) VALUES (ROW('LONDON','UK')),(ROW('NY','UK'));
+SELECT (address).country FROM companies;
+SELECT (companies.address).city FROM companies;
+
+CREATE TYPE inventory_item AS(
+	product_name VARCHAR(50),
+	supplier_id INT,
+	price NUMERIC
+);
+CREATE TABLE inventory(
+	inventory_id SERIAL PRIMARY KEY,
+	item inventory_item
+);
+SELECT * FROM inventory;
+INSERT INTO inventory (item) VALUES (ROW('SHAMPOO',20,10.999));
+INSERT INTO inventory (item) VALUES (ROW('SHAMPOO',5,10.999));
+INSERT INTO inventory (item) VALUES (ROW('SHAMPOO',10,10.999));
+SELECT inventory_id,(item).product_name FROM inventory WHERE (item).supplier_id < 10;
+
+CREATE TYPE currency AS ENUM ('USA','VND','TH');
+SELECT 'USD'::currency;
+ALTER TYPE currency ADD VALUE 'JPN' AFTER 'VND';
+CREATE TABLE stocks(
+	stock_id SERIAL PRIMARY KEY,
+	stock_currency currency
+);
+INSERT INTO stocks (stock_currency) VALUES ('USA');
+INSERT INTO stocks (stock_currency) VALUES ('USD1');
+SELECT * FROM stocks;
+CREATE TYPE sample_type AS ENUM ('abc','123');
+DROP TYPE sample_type;
+
+CREATE TYPE myaddress AS(
+	city VARCHAR(50),
+	myname VARCHAR(50)
+);
+ALTER TYPE myaddress RENAME TO my_address;
+ALTER TYPE my_address OWNER TO ton;
+ALTER TYPE my_address SET SCHEMA test_scm;
+ALTER TYPE test_scm.my_address ADD ATTRIBUTE street_address VARCHAR(50);
+
+CREATE TYPE status_enum AS ENUM ('pending','pass','fail','done');
+CREATE TABLE jobs(
+	job_id SERIAL PRIMARY KEY,
+	job_status status_enum
+);
+INSERT INTO jobs (job_status) VALUES ('pass');
+INSERT INTO jobs (job_status) VALUES ('fail');
+INSERT INTO jobs (job_status) VALUES ('no');
+SELECT * FROM jobs;
+UPDATE jobs SET job_status = 'done' WHERE job_status = 'fail';
+ALTER TYPE status_enum RENAME TO status_enum_old;
+CREATE TYPE status_enum AS ENUM ('pending','pass','done');
+ALTER TABLE jobs ALTER COLUMN job_status TYPE status_enum USING job_status::text::status_enum;
+DROP TYPE status_enum_old;
+
+CREATE TYPE status AS ENUM ('pending','approve','reject');
+CREATE TABLE cron_jobs(
+	cron_job_id int,
+	status status DEFAULT 'pending'
+);
+INSERT INTO cron_jobs (cron_job_id) VALUES (1);
+SELECT * FROM cron_jobs;
+INSERT INTO cron_jobs (cron_job_id,status) VALUES (2,'approve');
+
+DO
+$$
+BEGIN
+	IF NOT EXISTS (SELECT * 
+				   FROM pg_type typ INNER JOIN pg_namespace nsp ON nsp.oid = typ.typnamespace 
+				   WHERE nsp.nspname=current_schema() AND typ.typname='ai')
+	THEN CREATE TYPE ai AS (a text,i integer);
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
