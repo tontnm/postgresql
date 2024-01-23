@@ -233,3 +233,39 @@ ALTER TYPE myaddress RENAME TO my_address;
 ALTER TYPE my_address OWNER TO ton;
 ALTER TYPE my_address SET SCHEMA test_scm;
 ALTER TYPE test_scm.my_address ADD ATTRIBUTE street_address VARCHAR(50);
+
+CREATE TYPE status_enum AS ENUM ('pending','pass','fail','done');
+CREATE TABLE jobs(
+	job_id SERIAL PRIMARY KEY,
+	job_status status_enum
+);
+INSERT INTO jobs (job_status) VALUES ('pass');
+INSERT INTO jobs (job_status) VALUES ('fail');
+INSERT INTO jobs (job_status) VALUES ('no');
+SELECT * FROM jobs;
+UPDATE jobs SET job_status = 'done' WHERE job_status = 'fail';
+ALTER TYPE status_enum RENAME TO status_enum_old;
+CREATE TYPE status_enum AS ENUM ('pending','pass','done');
+ALTER TABLE jobs ALTER COLUMN job_status TYPE status_enum USING job_status::text::status_enum;
+DROP TYPE status_enum_old;
+
+CREATE TYPE status AS ENUM ('pending','approve','reject');
+CREATE TABLE cron_jobs(
+	cron_job_id int,
+	status status DEFAULT 'pending'
+);
+INSERT INTO cron_jobs (cron_job_id) VALUES (1);
+SELECT * FROM cron_jobs;
+INSERT INTO cron_jobs (cron_job_id,status) VALUES (2,'approve');
+
+DO
+$$
+BEGIN
+	IF NOT EXISTS (SELECT * 
+				   FROM pg_type typ INNER JOIN pg_namespace nsp ON nsp.oid = typ.typnamespace 
+				   WHERE nsp.nspname=current_schema() AND typ.typname='ai')
+	THEN CREATE TYPE ai AS (a text,i integer);
+	END IF;
+END;
+$$
+LANGUAGE plpgsql;
