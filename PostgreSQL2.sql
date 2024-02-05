@@ -269,3 +269,164 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
+
+/*
+	Constraints
+	- controls kind of data, rule enforced on data column, prevent invalid data, ensure accurary and reliability, be on Table or Column
+	- types: NOT NULL, UNIQUE, DEFAULT, PRIMARY KEY, FOREIGN KEY, CHECK
+	
+	NOT NULL: = unknow or information missing, # '' or 0, use IS NULL or IS NOT NULL
+*/
+CREATE TABLE table_nn(
+	table_nn_id SERIAL PRIMARY KEY,
+	tag TEXT NOT NULL
+);
+INSERT INTO table_nn (tag) VALUES('ADAM');
+INSERT INTO table_nn (tag) VALUES('');
+INSERT INTO table_nn (tag) VALUES(NULL);
+SELECT * FROM table_nn;
+
+CREATE TABLE table_nn2(
+	table_nn_id SERIAL PRIMARY KEY,
+	tag2 TEXT
+);
+ALTER TABLE table_nn2
+ALTER COLUMN tag2 SET NOT NULL;
+
+--UNIQUE: value stored in a column or group of column are unique, insert, update
+CREATE TABLE table_email(
+	table_email_id SERIAL PRIMARY KEY,
+	email TEXT UNIQUE
+);
+INSERT INTO table_email (email) VALUES ('A@A.COM');
+SELECT * FROM table_email;
+
+CREATE TABLE table_products(
+	id SERIAL PRIMARY KEY,
+	product_code VARCHAR(10),
+	product_name TEXT
+);
+ALTER TABLE table_products
+ADD CONSTRAINT unique_product_code UNIQUE (product_code,product_name);
+INSERT INTO table_products (product_code,product_name) VALUES ('A','APPLE');
+INSERT INTO table_products (product_code,product_name) VALUES ('a','apple');
+SELECT * FROM table_products;
+
+--DEFAULT
+CREATE TABLE employees(
+	employee_id SERIAL PRIMARY KEY,
+	first_name VARCHAR(50),
+	last_name VARCHAR(50),
+	is_enable VARCHAR(2) DEFAULT 'Y'
+);
+INSERT INTO employees (first_name,last_name) VALUES ('R','R');
+SELECT * FROM employees;
+ALTER TABLE employees
+ALTER COLUMN is_enable SET DEFAULT 'N';
+ALTER TABLE employees
+ALTER COLUMN is_enable DROP DEFAULT;
+
+--PRIMARY KEY
+CREATE TABLE table_items(
+	item_id SERIAL PRIMARY KEY,
+	item_name VARCHAR(100) NOT NULL
+);
+SELECT * FROM table_items;
+ALTER TABLE table_items
+DROP CONSTRAINT table_items_pkey;
+ALTER TABLE table_items
+ADD PRIMARY KEY (item_id);
+
+--COMPOSITE PRIMARY KEY
+CREATE TABLE t_grades(
+	course_id VARCHAR(100) NOT NULL,
+	student_id VARCHAR(100) NOT NULL,
+	grade INT NOT NULL,
+	PRIMARY KEY (course_id,student_id)
+);
+INSERT INTO t_grades (course_id,student_id,grade) VALUES ('1','A1',10),('2','A2',29),('3','A3',50);
+SELECT * FROM t_grades;
+DROP TABLE t_grades;
+ALTER TABLE t_grades
+ADD CONSTRAINT t_grades_course_id_student_id_pkey
+PRIMARY KEY (course_id,student_id);
+
+--FOREIGN KEY
+CREATE TABLE t_products(
+	product_id INT PRIMARY KEY,
+	product_name VARCHAR(50),
+	supplier_id INT
+);
+CREATE TABLE t_suppliers(
+	supplier_id INT PRIMARY KEY,
+	supplier_name VARCHAR(100) NOT NULL
+);
+INSERT INTO t_suppliers(supplier_id,supplier_name) VALUES (1,'a'),(2,'b');
+SELECT * FROM t_suppliers;
+INSERT INTO t_products(product_id,product_name,supplier_id) VALUES (1,'aa',1),(2,'bb',2);
+INSERT INTO t_products(product_id,product_name,supplier_id) VALUES (3,'aa',100),(4,'bb',200); --can add invalid data
+SELECT * FROM t_products;
+DROP TABLE t_products;
+DROP TABLE t_suppliers;
+
+CREATE TABLE t_products(
+	product_id INT PRIMARY KEY,
+	product_name VARCHAR(50),
+	supplier_id INT,
+	FOREIGN KEY (supplier_id) REFERENCES t_suppliers(supplier_id)
+);
+CREATE TABLE t_suppliers(
+	supplier_id INT PRIMARY KEY,
+	supplier_name VARCHAR(100) NOT NULL
+);
+INSERT INTO t_suppliers(supplier_id,supplier_name) VALUES (1,'a'),(2,'b');
+SELECT * FROM t_suppliers;
+INSERT INTO t_products(product_id,product_name,supplier_id) VALUES (1,'aa',1),(2,'bb',2);
+INSERT INTO t_products(product_id,product_name,supplier_id) VALUES (3,'aa',100),(4,'bb',200); --cannot add invalid data
+DELETE FROM t_suppliers WHERE supplier_id = 1;
+DELETE FROM t_products WHERE product_id = 1;
+UPDATE t_products
+SET supplier_id = 100
+WHERE product_id = 1;
+
+ALTER TABLE t_products
+DROP CONSTRAINT t_products_supplier_id_fkey;
+ALTER TABLE t_products
+ADD CONSTRAINT t_products_supplier_id_fkey FOREIGN KEY (supplier_id) REFERENCES t_suppliers (supplier_id);
+
+--CHECK
+CREATE TABLE staff(
+	staff_id SERIAL PRIMARY KEY,
+	first_name VARCHAR(50),
+	last_name VARCHAR(50),
+	birth_date DATE CHECK (birth_date > '1900-01-01'),
+	joined_date DATE CHECK (joined_date > birth_date),
+	salary numeric CHECK (salary > 0)
+);
+SELECT * FROM staff;
+INSERT INTO staff (first_name, last_name, birth_date, joined_date, salary) VALUES 
+('adam','king','1999-01-01','2002-01-01',100);
+INSERT INTO staff (first_name, last_name, birth_date, joined_date, salary) VALUES 
+('adam','king','1800-01-01','2002-01-01',10);
+UPDATE staff
+SET birth_date = '1800-01-01'
+WHERE staff_id = 1;
+
+CREATE TABLE prices(
+	price_id SERIAL PRIMARY KEY,
+	product_id INT NOT NULL,
+	price NUMERIC NOT NULL,
+	discount NUMERIC NOT NULL,
+	valid_from DATE NOT NULL
+);
+ALTER TABLE prices
+ADD CONSTRAINT price_check
+CHECK(
+	price > 0 AND discount >= 0 AND price > discount
+);
+INSERT INTO prices (product_id,price,discount,valid_from) VALUES ('1',200,120,'2020-10-01');
+SELECT * FROM prices;
+ALTER TABLE prices
+RENAME CONSTRAINT price_check TO price_discount_check;
+ALTER TABLE prices
+DROP CONSTRAINT  price_discounts_check;
