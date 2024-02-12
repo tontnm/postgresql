@@ -430,3 +430,88 @@ ALTER TABLE prices
 RENAME CONSTRAINT price_check TO price_discount_check;
 ALTER TABLE prices
 DROP CONSTRAINT  price_discounts_check;
+
+--SEQUENCE
+CREATE SEQUENCE IF NOT EXISTS test_seq;
+SELECT nextval('test_seq');
+SELECT currval('test_seq');
+SELECT setval('test_seq',100);
+SELECT setval('test_seq',200,false);
+CREATE SEQUENCE IF NOT EXISTS test_seq2 START WITH 100;
+ALTER SEQUENCE test_seq RESTART WITH 100;
+ALTER SEQUENCE test_seq RENAME TO my_sequence;
+
+CREATE SEQUENCE IF NOT EXISTS test_seq3
+INCREMENT 50
+MINVALUE 40
+MAXVALUE 6000
+START WITH 500;
+SELECT nextval('test_seq3');
+
+CREATE SEQUENCE IF NOT EXISTS test_seq_smallint AS SMALLINT;
+CREATE SEQUENCE IF NOT EXISTS test_seq_smallint AS INT;
+CREATE SEQUENCE IF NOT EXISTS test_seq4;
+
+DROP SEQUENCE test_seq1;
+
+--include sequence into table
+CREATE TABLE users(
+	user_id SERIAL PRIMARY KEY, -- SERIAL will include sequence
+	user_name VARCHAR(50)
+);
+INSERT INTO users (user_name) VALUES ('ADAM');
+SELECT * FROM users;
+ALTER SEQUENCE users_user_id_seq RESTART WITH 100;
+
+--attach sequence to table
+CREATE TABLE users2(
+	user2_id INT PRIMARY KEY, -- INT will NOT include sequence
+	user2_name VARCHAR(50)
+);
+CREATE SEQUENCE users2_user2_id_seq
+START WITH 100 OWNED BY users2.user2_id;
+ALTER TABLE users2
+ALTER COLUMN user2_id SET DEFAULT nextval('users2_user2_id_seq');
+INSERT INTO users2 (user2_name) VALUES ('ADAM');
+SELECT * FROM users2;
+
+--list all sequences
+SELECT relname sequence_name
+FROM pg_class
+WHERE relkind = 'S';
+
+--share sequence among tables
+CREATE SEQUENCE common_fruits_seq START WITH 100;
+CREATE TABLE apples(
+	fruit_id INT DEFAULT nextval('common_fruits_seq') NOT NULL,
+	fruit_name VARCHAR(50)
+);
+INSERT INTO apples (fruit_name) VALUES ('big apple');
+SELECT * FROM apples;
+CREATE TABLE mangoes(
+	fruit_id INT DEFAULT nextval('common_fruits_seq') NOT NULL,
+	fruit_name VARCHAR(50)
+);
+INSERT INTO mangoes (fruit_name) VALUES ('big mango');
+SELECT * FROM mangoes;
+
+--create alpha-numeric sequence
+CREATE TABLE contacts(
+	contact_id SERIAL PRIMARY KEY,
+	contact_name VARCHAR(10)
+);
+INSERT INTO contacts (contact_name) VALUES ('admin');
+SELECT * FROM contacts;
+
+CREATE TABLE contacts(
+	contact_id TEXT NOT NULL DEFAULT ('ID' || nextval('table_seq')),
+	contact_name VARCHAR(10)
+);
+
+CREATE TABLE tbl_seq(
+	contact_id TEXT NOT NULL DEFAULT ('ID' || nextval('table_seq')),
+	contact_name VARCHAR(10)
+);
+INSERT INTO tbl_seq (contact_name) VALUES ('admin');
+SELECT * FROM tbl_seq;
+ALTER SEQUENCE tbl_seq OWNED BY contacts.contact_id;
