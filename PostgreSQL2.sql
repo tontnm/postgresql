@@ -515,3 +515,69 @@ CREATE TABLE tbl_seq(
 INSERT INTO tbl_seq (contact_name) VALUES ('admin');
 SELECT * FROM tbl_seq;
 ALTER SEQUENCE tbl_seq OWNED BY contacts.contact_id;
+
+--group data
+SELECT * FROM movies;
+SELECT movie_lang,COUNT(movie_lang) FROM movies GROUP BY movie_lang;
+SELECT movie_lang,AVG(movie_length) FROM movies GROUP BY movie_lang ORDER BY movie_lang;
+SELECT age_certificate,SUM(movie_length) FROM movies GROUP BY age_certificate ORDER BY age_certificate;
+SELECT movie_lang,MIN(movie_length),MAX(movie_length) FROM movies GROUP BY movie_lang ORDER BY MAX(movie_length) DESC;
+SELECT movie_lang,age_certificate,AVG(movie_length) FROM movies GROUP BY movie_lang, age_certificate ORDER BY movie_lang, 3 DESC;
+SELECT movie_lang,age_certificate,AVG(movie_length) 
+FROM movies 
+WHERE movie_length > 100 
+GROUP BY movie_lang, age_certificate,movie_length 
+ORDER BY movie_length, 3 DESC;
+SELECT age_certificate,AVG(movie_length) FROM movies WHERE age_certificate = 'PG' GROUP BY age_certificate;
+SELECT * FROM age_certificate;
+
+SELECT * FROM directors;
+SELECT nationality,COUNT(director_id) AS "TOTAL DIRECTORS" FROM directors GROUP BY nationality ORDER BY 2 DESC;
+SELECT movie_lang,age_certificate,SUM(movie_length) FROM movies GROUP BY movie_lang,age_certificate ORDER BY 3 DESC;
+
+/*
+FROM -> 
+WHERE -> conditions
+GROUP BY -> group sets
+HAVING -> filter again
+SELECT -> columns
+DISTINCT -> unique columns if you use DISTINCT
+ORDER BY -> 
+LIMIT -> filter records
+*/
+
+SELECT * FROM movies;
+SELECT movie_lang,SUM(movie_length) FROM movies GROUP BY movie_lang HAVING SUM(movie_length) > 200 ORDER BY SUM(movie_length);
+SELECT movie_lang,SUM(movie_length) FROM movies GROUP BY movie_lang HAVING SUM(movie_length) > 200 ORDER BY SUM(movie_length);
+SELECT * FROM directors;
+SELECT * FROM movies;
+
+SELECT movie_lang,SUM(movie_length) FROM movies GROUP BY movie_lang;
+SELECT director_id, SUM(movie_length) FROM movies GROUP BY director_id HAVING SUM(movie_length) > 200 ORDER BY director_id;
+SELECT director_id, SUM(movie_length) FROM movies GROUP BY director_id HAVING SUM(movie_length) > 200 ORDER BY 2 DESC;
+
+/*
+	HAVING VS WHERE
+		- HAVING works on result group
+		- WHERE works on SELECT columns and not on result group
+*/
+select movie_lang,sum(movie_length) from movies group by movie_lang having sum(movie_length) order by 2 desc;
+select movie_lang,sum(movie_length) from movies where movie_length > 100 group by movie_lang order by 2 desc;
+
+create table employee_test(
+	employee_id SERIAL PRIMARY KEY,
+	employee_name VARCHAR(100),
+	deparment VARCHAR(100),
+	salary INT
+);
+select * from employee_test;
+insert into employee_test (employee_name,department,salary) values 
+('john','finance',2500),
+('MARY',NULL,2500),
+('ADAM',NULL,2500),
+('BRUCE','finance',2500),
+('LINDA','IT',2500),
+('MEGAN','IT',2500);
+;
+select deparment,count(salary) as total_employees from employee_test group by deparment order by deparment;
+select coalesce(deparmentj,'* NO DEPARMENT *') as department,count(salary) as total_employees from employee_test group by deparment order by deparment;
