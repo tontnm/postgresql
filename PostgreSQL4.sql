@@ -74,3 +74,37 @@ SELECT m.movie_name,d.first_name,d.last_name FROM movies m
 LEFT JOIN directors d ON m.director_id = d.director_id ORDER BY d.first_name;
 INSERT INTO directors (first_name,last_name,date_of_birth,nationality) VALUES 
 ('James','David','2010-01-01','American');
+
+SELECT d.first_name,d.last_name,m.movie_name,m.movie_lang
+FROM directors d
+LEFT JOIN movies m ON d.director_id  = m.director_id 
+WHERE m.movie_lang IN ('English','Chinese')
+ORDER BY d.director_id;
+
+SELECT d.first_name,d.last_name,count(m.movie_name)
+FROM directors d
+LEFT JOIN movies m ON d.director_id  = m.director_id 
+WHERE m.movie_lang IN ('English','Chinese')
+GROUP BY d.first_name, d.last_name;
+
+SELECT d.first_name,d.last_name,count(*) AS "total_movies"
+FROM directors d
+LEFT JOIN movies m ON d.director_id  = m.director_id 
+WHERE m.movie_lang IN ('English','Chinese')
+GROUP BY d.first_name, d.last_name
+ORDER BY count(*) DESC;
+
+SELECT d.first_name,d.last_name,m.movie_name,m.age_certificate
+FROM directors d 
+LEFT JOIN movies m ON m.director_id = d.director_id 
+WHERE d.nationality IN ('American','Chinese','Japanese');
+
+SELECT 
+	m.movie_id,m.movie_name,d.first_name,d.last_name,
+	sum(mr.revenue_domestic) AS "total_domestic",
+	sum(mr.revenue_international) AS "total_international"
+FROM directors d 
+LEFT JOIN movies m ON d.director_id = m.director_id 
+LEFT JOIN movies_revenues mr ON mr.movie_id = m.movie_id
+GROUP BY m.movie_id,m.movie_name,d.first_name,d.last_name
+ORDER BY 5 DESC NULLS LAST;
