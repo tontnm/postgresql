@@ -155,3 +155,72 @@ SELECT
 	t2.cl5,
 	t2.cl6
 FROM tb1 t1 FULL OUTER JOIN tb2 t2 ON t1.add_date = t2.add_date;
+
+SELECT * FROM left_products l
+UNION 
+SELECT * FROM right_products r;
+INSERT INTO right_products (product_id,proudct_name) VALUES ('10','Pen');
+SELECT * FROM left_products l
+UNION ALL
+SELECT * FROM right_products r;
+
+SELECT first_name, last_name, 'actors' AS "tablename" FROM actors a 
+UNION 
+SELECT first_name, last_name, 'directors' AS "tablename" FROM directors d
+ORDER BY first_name ASC;
+SELECT gender, last_name, 'actors' AS "tablename" FROM actors a 
+UNION 
+SELECT first_name, last_name, 'directors' AS "tablename" FROM directors d;
+
+SELECT a.first_name,a.last_name, 'actors' AS "tablename" FROM actors a
+WHERE a.gender = 'F'
+UNION 
+SELECT d.first_name,d.last_name, 'directors' AS "tablename" FROM directors d
+WHERE d.nationality IN ('American','Chinese','Japanese')
+ORDER BY first_name;
+
+SELECT a.first_name,a.last_name,a.date_of_birth,'actors' AS "tablename" FROM actors a
+WHERE a.date_of_birth > '1989-12-31'
+UNION 
+SELECT d.first_name,d.last_name,d.date_of_birth,'directors' AS "tablename" FROM directors d
+WHERE d.date_of_birth > '1989-12-31'
+ORDER BY first_name;
+
+SELECT a.first_name,a.last_name,a.date_of_birth,'actors' AS "tablename" FROM actors a
+WHERE a.first_name ILIKE 'A%'
+UNION 
+SELECT d.first_name,d.last_name,d.date_of_birth,'directors' AS "tablename" FROM directors d
+WHERE d.first_name ILIKE 'A%'
+ORDER BY first_name;
+
+CREATE TABLE tbl1 (
+	col1 int,
+	col2 int
+);
+CREATE TABLE tbl2 (
+	col3 int
+);
+SELECT col1,col2 FROM tbl1
+UNION
+SELECT NULL AS col1, col3 FROM tbl2;
+
+SELECT product_id, proudct_name FROM left_products l
+INTERSECT 
+SELECT product_id, proudct_name FROM right_products r;
+
+SELECT first_name,last_name FROM directors
+INTERSECT 
+SELECT first_name,last_name FROM actors;
+
+SELECT product_id, proudct_name FROM left_products
+EXCEPT 
+SELECT product_id, proudct_name FROM right_products;
+
+SELECT first_name,last_name FROM directors
+EXCEPT 
+SELECT first_name,last_name FROM actors;
+
+SELECT first_name,last_name FROM directors
+EXCEPT 
+SELECT first_name,last_name FROM actors
+WHERE gender = 'F';
