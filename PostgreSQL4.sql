@@ -108,3 +108,50 @@ LEFT JOIN movies m ON d.director_id = m.director_id
 LEFT JOIN movies_revenues mr ON mr.movie_id = m.movie_id
 GROUP BY m.movie_id,m.movie_name,d.first_name,d.last_name
 ORDER BY 5 DESC NULLS LAST;
+
+SELECT * FROM left_products lp ;
+SELECT * FROM left_products lp 
+INNER JOIN left_products lp2 ON lp.product_id = lp2.product_id ;
+SELECT m.movie_name,m2.movie_name,m.movie_length FROM movies m
+INNER JOIN movies m2 ON m.movie_length = m2.movie_length AND m.movie_name <> m2.movie_name
+ORDER BY m.movie_length DESC, m2.movie_name;
+SELECT m.movie_name,m2.director_id FROM movies m 
+INNER JOIN movies m2 ON m.director_id = m2.movie_id
+ORDER BY m2.director_id,m.movie_name;
+
+--Cross join tb1:10, tb2:10 = 100 records
+-- if use join -> postgresql will use inner as default
+
+CREATE TABLE tb1 (
+	add_date date,
+	cl1 int,
+	cl2 int,
+	cl3 int,
+	cl4 int
+);
+CREATE TABLE tb2 (
+	add_date date,
+	cl1 int,
+	cl2 int,
+	cl3 int,
+	cl4 int,
+	cl5 int,
+	cl6 int
+);
+INSERT INTO tb1 (add_date,cl1,cl2,cl3,cl4) 
+VALUES 
+('2020-01-01','1','2','3','4'),('2020-01-02','5','6','7','8');
+INSERT INTO tb2 (add_date,cl1,cl2,cl3,cl4,cl5,cl6) 
+VALUES 
+('2020-01-01','9','10','11','12','13','14'),('2020-01-02','15','16','17','18','19','20');
+
+SELECT * FROM tb1;
+SELECT 
+	COALESCE(t1.add_date,t2.add_date) AS "Add Date",
+	COALESCE(t1.cl1,t2.cl1),
+	COALESCE(t1.cl2,t2.cl2),
+	COALESCE(t1.cl3,t2.cl3),
+	COALESCE(t1.cl4,t2.cl4),
+	t2.cl5,
+	t2.cl6
+FROM tb1 t1 FULL OUTER JOIN tb2 t2 ON t1.add_date = t2.add_date;
