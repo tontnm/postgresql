@@ -224,3 +224,46 @@ SELECT first_name,last_name FROM directors
 EXCEPT 
 SELECT first_name,last_name FROM actors
 WHERE gender = 'F';
+
+SELECT 
+	int4range(1,6) AS "Default [( = closed - opened",
+	numrange(1.4213,6.2986,'[]') AS "[] closed - closed",
+	daterange('20100101','20201220','()') AS "Dates () = opened - opened",
+	tsrange(localtimestamp,localtimestamp+INTERVAL '8 DAYS', '(]') AS " opened - closed";
+	
+SELECT 
+	ARRAY[1,2,3] AS "INT arrays",
+	ARRAY[2.12225::float] AS "floating numbers with putting explicit typing",
+	ARRAY[current_date,current_date + 5];
+
+SELECT 
+	ARRAY[1,2,3] = ARRAY[1,2,3] AS "Equality",
+	ARRAY[1,2,3] = ARRAY[2,3] AS "Equality",
+	ARRAY[1,2,3] <> ARRAY[2,3,4] AS "Not Equal To",
+	ARRAY[1,2,3] < ARRAY[2,3,4] AS "Less Than",
+	ARRAY[1,2,3] <= ARRAY[2,3,4] AS "Less Than and Equal To",
+	ARRAY[1,2,3] > ARRAY[2,3,4] AS "Greater Than",
+	ARRAY[1,2,3] >= ARRAY[2,3,4] AS "Greater Than and Equal To";
+	
+SELECT 
+	int4range(1,4) @> int4range(2,3) AS "Contains",
+	daterange(current_date,current_date +30) @> current_date+15 AS "Contains value",
+	numrange(1.6,5.2) && numrange(0,4);
+	
+SELECT 
+	ARRAY[1,2,3] @> ARRAY[2,3] AS "Contains",
+	ARRAY['a','b'] <@ ARRAY['a','b'] AS "Contained by",
+	ARRAY[1,2,3] && ARRAY[2,3,4] AS "Is overlap";
+	
+SELECT 
+	ARRAY[1,2,3] || ARRAY[4,5,6] AS "Combine arrays via ||";
+SELECT 
+	array_cat(ARRAY[1,2,3],ARRAY[4,5,6]) AS "Combine arrays via array_cat";
+SELECT 
+	4 || ARRAY[1,2,3] AS "Adding to an array";
+SELECT 
+	array_prepend(4,ARRAY[1,2,3]) AS "Using prepend";
+SELECT 
+	ARRAY[1,2,3] || 4 AS "Adding to an array";
+SELECT 
+	array_append(ARRAY[1,2,3],4) AS "Using append";
